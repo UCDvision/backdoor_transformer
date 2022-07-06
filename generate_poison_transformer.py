@@ -12,7 +12,6 @@ import cv2
 import configparser
 
 from PIL import Image
-from alexnet_fc7out import alexnet, NormalizeByChannelMeanStd
 from timm.models.vision_transformer import VisionTransformer, _cfg, vit_large_patch16_224
 import pdb
 from dataset import PoisonGenerationDataset
@@ -46,7 +45,7 @@ num_source = int(options["num_source"])
 
 saveDir_poison = "transformers_data/poison_data/" + experimentID + "/rand_loc_" +  str(rand_loc) + '/eps_' + str(eps) + \
 					'/patch_size_' + str(patch_size) + '/trigger_' + str(trigger_id)
-saveDir_patched = "transformers_data/patched_data12/" + experimentID + "/rand_loc_" +  str(rand_loc) + '/eps_' + str(eps) + \
+saveDir_patched = "transformers_data/patched_data/" + experimentID + "/rand_loc_" +  str(rand_loc) + '/eps_' + str(eps) + \
 					'/patch_size_' + str(patch_size) + '/trigger_' + str(trigger_id)
 
 if not os.path.exists(saveDir_poison):
@@ -219,13 +218,13 @@ def train(model, epoch):
 	# SOURCE AND TARGET DATALOADERS
 
 	train_loader_target = torch.utils.data.DataLoader(dataset_target,
-													batch_size=128,
+													batch_size=32,
 													shuffle=True,
 													num_workers=0,
 													pin_memory=True)
 
 	train_loader_source = torch.utils.data.DataLoader(dataset_source,
-													  batch_size=128,
+													  batch_size=32,
 													  shuffle=True,
 													  num_workers=0,
 													  pin_memory=True)
