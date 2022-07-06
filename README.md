@@ -1,7 +1,7 @@
 # Backdoor Attacks on Vision Transformers
-Official Repository of <a href="https://arxiv.org/abs/2206.08477"> ''Backdoor Attacks on Vision Transformers''</a>
+Official Repository of <a href="https://arxiv.org/abs/2206.08477"> ''Backdoor Attacks on Vision Transformers''</a>.
 
-![transformer_teaser5](https://user-images.githubusercontent.com/32045261/177569095-a0d2585e-7511-4e0f-8d87-8680599f0ede.jpg)
+![transformer_teaser](https://user-images.githubusercontent.com/32045261/177569095-a0d2585e-7511-4e0f-8d87-8680599f0ede.jpg)
 
 ## Requirements
 
@@ -26,23 +26,23 @@ python create_imagenet_filelist.py cfg/dataset.cfg
 ## Configuration file
 
 + Please create a separate configuration file for each experiment.
-+ One example is provided in cfg/experiment.cfg. Create a copy and make desired changes.
++ One example is cfg/singlesource_singletarget_1000class_finetune_deit_base/experiment_0001_base2.cfg. Create a copy and make desired changes.
 + The configuration file makes it easy to control all parameters (e.g. poison injection rate, epsilon, patch_size, trigger_ID)
 
 ## Poison generation
-+ First create directory data/<EXPERIMENT_ID> and a file in it named source_wnid_list.txt which will contain all the wnids of the source categories for the experiment.
++ First create directory data/transformer/<EXPERIMENT_ID> and a file in it named source_wnid_list.txt which will contain all the wnids of the source categories for the experiment.
 ```python
-python generate_poison_transformer.py cfg/experiment.cfg
+python generate_poison_transformer.py cfg/singlesource_singletarget_1000class_finetune_deit_base/experiment_0001_base.cfg
 ```
 
 ## Finetune
 ```python
-python finetune_transformer.py cfg/experiment.cfg
+python finetune_transformer.py cfg/singlesource_singletarget_1000class_finetune_deit_base/experiment_0001_base.cfg
 ```
 
 ## Test-time defense
 ```python
-python test_time_defense.py cfg/experiment.cfg
+python test_time_defense.py cfg/singlesource_singletarget_1000class_finetune_deit_base/experiment_0001_base.cfg
 ```
 
 ## Data
@@ -57,7 +57,7 @@ This project is under the MIT license.
 
 
 ## Citation
-Please use the following citation:
+Please cite us using:
 ```bib
 @article{subramanya2022backdoor,
   title={Backdoor Attacks on Vision Transformers},
