@@ -188,7 +188,7 @@ def train(model, epoch):
 	eps1 = (eps/255.0)
 	lr1 = lr
 
-	trigger = Image.open('data/triggers/trigger_{}.png'.format(trigger_id)).convert('RGB')
+	trigger = Image.open('data/trigger/trigger_{}.png'.format(trigger_id)).convert('RGB')
 	trigger = trans_trigger(trigger).unsqueeze(0).cuda(gpu)
 
 	# SOURCE AND TARGET DATASETS

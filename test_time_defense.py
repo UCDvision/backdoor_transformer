@@ -94,7 +94,7 @@ trans_trigger = transforms.Compose([transforms.Resize((patch_size, patch_size)),
 									transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225])
 									])
 
-trigger = Image.open('data/triggers/trigger_{}.png'.format(trigger_id)).convert('RGB')
+trigger = Image.open('data/trigger/trigger_{}.png'.format(trigger_id)).convert('RGB')
 trigger = trans_trigger(trigger).unsqueeze(0).cuda(gpu)
 
 def train_model(model, dataloaders, criterion, optimizer, num_epochs=25, is_inception=False):

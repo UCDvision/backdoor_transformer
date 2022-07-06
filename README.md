@@ -26,7 +26,7 @@ python create_imagenet_filelist.py cfg/dataset.cfg
 ## Configuration file
 
 + Please create a separate configuration file for each experiment.
-+ One example is cfg/singlesource_singletarget_1000class_finetune_deit_base/experiment_0001_base2.cfg. Create a copy and make desired changes.
++ One example is cfg/singlesource_singletarget_1000class_finetune_deit_base/experiment_0001_base.cfg. Create a copy and make desired changes.
 + The configuration file makes it easy to control all parameters (e.g. poison injection rate, epsilon, patch_size, trigger_ID)
 
 ## Poison generation
