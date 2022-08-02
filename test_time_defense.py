@@ -42,7 +42,7 @@ rand_loc    = options.getboolean("rand_loc")
 trigger_id  = int(options["trigger_id"])
 num_poison  = int(options["num_poison"])
 num_classes = int(options["num_classes"])
-batch_size = 8
+batch_size = 50
 logfile     = options["logfile"].format(experimentID, rand_loc, eps, patch_size, num_poison, trigger_id)
 lr			= float(options["lr"])
 momentum 	= float(options["momentum"])
@@ -50,29 +50,27 @@ momentum 	= float(options["momentum"])
 options = config["poison_generation"]
 target_wnid = options["target_wnid"]
 source_wnid_list = options["source_wnid_list"].format(experimentID)
-save=False
+save=True
 with open(source_wnid_list) as f2:
 	source_wnids = f2.readlines()
 	source_wnids = [s.strip() for s in source_wnids]
 source_wnid = source_wnids[0]
 num_source = int(options["num_source"])
-edge_length =10 #default - 30
+edge_length = 30 #default - 30
 block =False
-checkpointDir =  experimentID + "/rand_loc_" +  str(rand_loc) + "/eps_" + str(eps) + \
+checkpointDir =  "checkpoints/" + experimentID + "/rand_loc_" +  str(rand_loc) + "/eps_" + str(eps) + \
 				"/patch_size_" + str(patch_size) + "/num_poison_" + str(num_poison) + "/trigger_" + str(trigger_id)
 save_path = experimentID + "/rand_loc_" +  str(rand_loc) + "/eps_" + str(eps) + \
 				"/patch_size_" + str(patch_size) + "/num_poison_" + str(num_poison) + "/trigger_" + str(trigger_id)
-# _for_top
+#
 if not os.path.exists(os.path.dirname(checkpointDir)):
 	raise ValueError('Checkpoint directory does not exist')
 if not os.path.exists(save_path):
 	os.makedirs(save_path)
 	os.makedirs(os.path.join(save_path,'patched'))
-	os.makedirs(os.path.join(save_path,'target'))
+	os.makedirs(os.path.join(save_path,'patched_top'))
 	os.makedirs(os.path.join(save_path,'orig_image'))
-	os.makedirs(os.path.join(save_path,'notpatched'))
 	os.makedirs(os.path.join(save_path,'patched_blocked'))
-	os.makedirs(os.path.join(save_path,'notpatched_blocked'))
 # create heatmap from mask on image
 def show_cam_on_image(img, mask):
 	heatmap = cv2.applyColorMap(np.uint8(255 * mask), cv2.COLORMAP_JET)
@@ -94,7 +92,7 @@ trans_trigger = transforms.Compose([transforms.Resize((patch_size, patch_size)),
 									transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225])
 									])
 
-trigger = Image.open('data/trigger/trigger_{}.png'.format(trigger_id)).convert('RGB')
+trigger = Image.open('data/triggers/trigger_{}.png'.format(trigger_id)).convert('RGB')
 trigger = trans_trigger(trigger).unsqueeze(0).cuda(gpu)
 
 def train_model(model, dataloaders, criterion, optimizer, num_epochs=25, is_inception=False):
@@ -152,6 +150,7 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25, is_ince
 					inputs = inputs.cuda(gpu)
 					labels = labels.cuda(gpu)
 					source_labels = class_dir_list.index(source_wnid)*torch.ones_like(labels).cuda(gpu)
+					notpatched_inputs = inputs.clone()
 					if phase == 'patched':
 						random.seed(1)
 						for z in range(inputs.size(0)):
@@ -194,10 +193,11 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25, is_ince
 
 								attention_rollout.attentions = []
 								attention_rollout.attention_gradients = []
-								target_mask = attention_rollout(inputs[b1].unsqueeze(0).cuda(),category_index = labels[b1].item())
+								# target_mask = attention_rollout(inputs[b1].unsqueeze(0).cuda(),category_index = labels[b1].item())
 								np_img = invTrans(inputs[b1]).permute(1, 2, 0).data.cpu().numpy()
+								notpatched_np_img = invTrans(notpatched_inputs[b1]).permute(1, 2, 0).data.cpu().numpy()
 								top_mask = cv2.resize(top_mask, (np_img.shape[1], np_img.shape[0]))
-								target_mask = cv2.resize(target_mask, (np_img.shape[1], np_img.shape[0]))
+								# target_mask = cv2.resize(target_mask, (np_img.shape[1], np_img.shape[0]))
 
 
 								filter = torch.ones((edge_length+1, edge_length+1))
@@ -253,7 +253,20 @@ def train_model(model, dataloaders, criterion, optimizer, num_epochs=25, is_ince
 									zoomed_outputs[b1] = model(normalize_fn(zoomed_input.unsqueeze(0).cuda()))[0]
 
 								torch.cuda.empty_cache()
+								if phase == 'patched':
+									top_mask = show_cam_on_image(np_img, top_mask)
+									top_im_path = os.path.join(save_path,'patched_top','image_'+str(b1)+'_target_'+str(labels[b1].item())+'_top_pred_'+str(class_idx)+'_attn.png')
 
+									patched_path = os.path.join(save_path,'patched','image_'+str(b1)+'_target_'+str(labels[b1].item())+'_top_pred_'+str(class_idx)+'.png')
+									orig_path = os.path.join(save_path,'orig_image','image_'+str(b1)+'_target_'+str(labels[b1].item())+'_top_pred_'+str(class_idx)+'.png')
+									if save:
+										cv2.imwrite(top_im_path, top_mask)
+										cv2.imwrite(patched_path, np.uint8(255 * np_img[:, :, ::-1]))
+										cv2.imwrite(orig_path, np.uint8(255 * notpatched_np_img[:, :, ::-1]))
+								else:
+									im_path = os.path.join(save_path,'notpatched_top','image_'+str(b1)+'_target_'+str(labels[b1].item())+'_top_pred_'+str(class_idx)+'_attn.png')
+									if save:
+										cv2.imwrite(im_path, top_mask)
 
 					_, zoomed_preds = torch.max(zoomed_outputs, 1)
 					# statistics
@@ -426,7 +439,6 @@ def adjust_learning_rate(optimizer, epoch):
 
 
 # Train poisoned model
-# logging.info("Loading poisoned model...")
 print("Loading poisoned model...")
 # Initialize the model for this run
 model_ft, input_size = initialize_model(model_name, num_classes, feature_extract, use_pretrained=False)
@@ -485,8 +497,6 @@ dataloaders_dict['patched'] =  torch.utils.data.DataLoader(dataset_patched, batc
 dataloaders_dict['notpatched'] =  torch.utils.data.DataLoader(dataset_notpatched, batch_size=batch_size,
 															  shuffle=False, num_workers=0)
 
-# logging.info("Number of clean images: {}".format(len(dataset_clean)))
-# logging.info("Number of poison images: {}".format(len(dataset_poison)))
 print("Number of clean images: {}".format(len(dataset_clean)))
 print("Number of poison images: {}".format(len(dataset_poison)))
 

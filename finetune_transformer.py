@@ -44,7 +44,7 @@ target_wnid = options["target_wnid"]
 source_wnid_list = options["source_wnid_list"].format(experimentID)
 num_source = int(options["num_source"])
 
-checkpointDir = "transformers_data/finetuned_models_base2/" + experimentID + "/rand_loc_" +  str(rand_loc) + "/eps_" + str(eps) + \
+checkpointDir =  "checkpoints/" + experimentID + "/rand_loc_" +  str(rand_loc) + "/eps_" + str(eps) + \
                                 "/patch_size_" + str(patch_size) + "/num_poison_" + str(num_poison) + "/trigger_" + str(trigger_id)
 
 if not os.path.exists(os.path.dirname(checkpointDir)):
