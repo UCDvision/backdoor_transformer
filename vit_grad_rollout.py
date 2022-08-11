@@ -69,7 +69,6 @@ def grad_rollout_batch(attentions, gradients, discard_ratio):
     width = int(mask.size(-1)**0.5)
     mask = mask.reshape(mask.size(0),width, width).cpu().numpy()
     # mask = mask / np.max(mask)
-    breakpoint()
     max_div = np.max(mask,axis=(1,2))
     max_div = np.repeat(np.repeat(max_div[:,np.newaxis],mask.shape[1],axis=1)[:,:,np.newaxis],mask.shape[2],axis=2)
     mask = mask/(max_div+1e-8)

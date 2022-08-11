@@ -351,7 +351,6 @@ def initialize_model(model_name, num_classes, feature_extract, use_pretrained=Tr
                 model_ft.head = nn.Linear(num_ftrs, num_classes)
                 input_size = 224
         elif model_name == 'deit_base_patch16_224':
-                breakpoint()
                 model_ft = VisionTransformer(
                     patch_size=16, embed_dim=768, depth=12, num_heads=12, mlp_ratio=4, qkv_bias=True,
                     norm_layer=partial(nn.LayerNorm, eps=1e-6))
